@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaaler</title> 
+    <style>
+        *{
+            box-sizing: border-box;
+            margin: 0; 
+            padding: 0; 
+            line-height: 1.5; 
+            
+        }  
+        h1{
+            text-align: center;
+        } 
+        main{
+            display: flex; 
+            flex-wrap: wrap;
+        }
+        article{
+            border: 1px solid #000; 
+            width: 100%; 
+            max-width: 30%; 
+            margin: 1rem auto; 
+            padding: 1.5rem; 
+        }  
+
+        canvas{
+            background-color: aliceblue;
+        } 
+        h4{
+            width: 100%;
+        }
+
+        svg{
+            width: 100%;  
+            
+            
+        }
+
+    </style>
+</head>
+<body>
+
+    <button onclick="fetchCountry('europe.svg')">Europa</button> 
+    <button onclick="fetchCountry('africa.svg')">Afrika</button> 
+    <button onclick="fetchCountry('world.svg')">verden</button>
+    
+    <h4 id="countries"></h4> 
+    
+    <div id="svgContainer"></div> 
+    <h4> Antall bomklikk</h4> 
+    <h4 id="counter"></h4>
+    <h4 id="rect">rectangles</h4>
+    <canvas id="drawing-area">
+
+    </canvas>  
+    
+</main> 
+
+    <script>
+        const canvas = document.getElementById("drawing-area")  
+
+        canvas.width = 800 
+        canvas.height = 600
+
+        const ctx = canvas.getContext("2d") 
+
+
+/*
+        ctx.beginPath() 
+        ctx.rect(50,50,50,50) 
+        ctx.fillStyle = "#d5d5d5" 
+        ctx.fill() 
+        ctx.stroke() 
+        ctx.closePath() 
+
+
+        ctx.beginPath() 
+        ctx.rect(200,50,50,50) 
+        ctx.fillStyle = "#blue" 
+        ctx.fill() 
+        ctx.stroke() 
+        ctx.closePath()  
+
+     */   
+
+        const rects = [
+            {
+                name: "rect1",
+                x: 50, 
+                y: 50, 
+                w: 50, 
+                h: 50, 
+                color: "#000"
+            }, 
+            {
+                name: "rect2", 
+                x: 200, 
+                y: 50, 
+                w: 50, 
+                h: 50, 
+                color: "#d4d4d4"
+            }
+        ]
+
+
+        rects.map((rect) => {
+            ctx.beginPath() 
+            ctx.rect(rect.x, rect.y, rect.w, rect.h) 
+            ctx.fillStyle = rect.color
+            ctx.fill() 
+            ctx.stroke() 
+            ctx.closePath()   
+        })  
+
+
+        const header = document.getElementById("rect")
+
+        function randomMinMax(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min)
+        } 
+
+        random = randomMinMax(0, rects.length)
+
+        randomRect = rects[random].name 
+
+        header.innerHTML = randomRect
+
+        canvas.addEventListener("click", function (event) {
+        const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+        const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+        rects.map((rect) => {
+            if ( 
+                rect.name === randomRect &&
+                mouseX >= rect.x &&
+                mouseX <= rect.x + rect.w &&
+                mouseY >= rect.y &&
+                mouseY <= rect.y + rect.h
+            ) {
+                console.log(`Clicked on ${rect.name}`)  
+                selectedRect = rect
+                selectedRect.color = "#fff";  
+                console.log(rect.color)
+                reDraw()
+            } else {
+                null
+            }
+        });
+    }); 
+
+    function reDraw(){
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height) 
+
+        rects.map((rect) => {
+            ctx.beginPath() 
+            ctx.rect(rect.x, rect.y, rect.w, rect.h) 
+            ctx.fillStyle = rect.color
+            ctx.fill() 
+            ctx.stroke() 
+            ctx.closePath()  
+        }) 
+
+    }  
+
+
+    
+
+    
+
+    function fetchCountry (svgFilePath){ 
+
+    
+    // Fetch SVG content
+    fetch(svgFilePath)
+    .then(response => response.text())
+    .then(svgText => {
+        // Inject SVG into the specified container
+        document.getElementById("svgContainer").innerHTML = svgText;
+
+        // Call a function to add event listeners to the SVG paths
+        addEventListenersToSVG();
+    })
+    .catch(error => console.error('Error fetching SVG:', error));
+    }
+
+
+
+// Function to add event listeners to SVG paths
+function addEventListenersToSVG() {
+    // Select all <path> elements in the SVG
+    var paths = document.querySelectorAll("svg path");  
+
+    const list = Array.from(paths)
+
+    const nameList = []
+    list.map((list) => nameList.push(list.getAttribute("name")))
+    console.log(nameList) 
+
+    let randomName = 0
+    const guessed = []  
+    let wrongs = 0 
+    
+    document.getElementById("countries").innerHTML = nameList[randomName] 
+    // Iterate through each path and add event listeners 
+
+    
+    
+    list.map((path, index) => {
+
+        path.addEventListener("click", function () { 
+
+            if (path.getAttribute("name") === nameList[randomName]
+            ){
+                console.log("Path " + (index + 1 ) + (path.getAttribute("name")) + " clicked!")
+                path.style.fill = "green"  
+                //nameList.splice(randomName,1)  
+                guessed.push(nameList[randomName]) 
+                console.log("guessed" + guessed) 
+
+                    if(guessed.length < nameList.length) {
+                    randomName++
+                    console.log("namelist " + nameList)  
+                    //randomName = randomMinMax(0, nameList.length)  
+                    console.log("ny " + nameList[randomName]) 
+                    document.getElementById("countries").innerHTML = nameList[randomName] 
+                    } else {
+                        document.getElementById("countries").innerHTML = "game over" 
+                    }
+                
+            } else{
+                console.log("feil")  
+                wrongs++
+                document.getElementById("counter").innerHTML = wrongs
+
+            }
+        });
+            });
+    }
+
+    </script>
+</body>
+</html>
